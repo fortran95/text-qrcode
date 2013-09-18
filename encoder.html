@@ -16,6 +16,7 @@ alert(    GibberishAES.dec(enc, "ultra-strong-password1"));
         //	$('#qrcodeCanvas').qrcode({	text	: mytext,	});	*/
         $(function(){
             $('.tabs').tabs();
+            $('.accordion').accordion();
         })
         </script>
     </head>
@@ -25,8 +26,6 @@ alert(    GibberishAES.dec(enc, "ultra-strong-password1"));
             这些二维码只要出现在同一图片内，且未经大的压缩，就仍然可以被识别出来，然后重组得到数据。
             在传输二维码时，二维码的顺序和重复不重要。您可以直接用截图工具截取屏幕上显示的全部二维码，然后发出即可。
             </p>
-            <p>本页面使用JavaScript绘制二维码，有图形和表格模式输出可选。前者适合于需要将多个复杂的二维码展示在同一页面上时，后者支持Ctrl+滚轮缩放，但是性能较差。</p>
-            <p>本页面不能识别二维码。因此，您需要将收集到的二维码图片用程序zbarimg识别。识别的批量结果直接粘贴到这个页面，即可自动整理得到输出。</p>
         </div>
         <div class="tabs">
             <ul>
@@ -34,7 +33,28 @@ alert(    GibberishAES.dec(enc, "ultra-strong-password1"));
                 <li><a href="#code-text">二维码图片识别结果解析</a></li>
             </ul>
             <div id="text-code">
-                
+                <p>本页面使用JavaScript绘制二维码，有图形和表格模式输出可选。
+                前者适合于需要将多个复杂的二维码展示在同一页面上时，后者支持Ctrl+滚轮缩放，但是性能较差。</p>
+                <div class="accordion">
+                    <h3>输入要处理的文本数据</h3>
+                    <div>
+                        <div>
+                            <label for="encrypt-password">对称加密密码</label>
+                            <input type="password" name="encrypt-password" />
+                        </div>
+                        <div>
+                        <div><label for="input-data">要处理的文本数据</label></div>
+                        <textarea name="input-data" style="width: 100%" rows="10"></textarea>
+                        </div>
+                    </div>
+
+                    <h3>复制二维码图片结果</h3>
+                    <div>
+                    </div>
+                </div>
+            </div>
+            <div id="code-text">
+                <p>本页面不能识别二维码。因此，您需要将收集到的二维码图片用程序zbarimg识别。识别的批量结果直接粘贴到这个页面，即可自动整理得到输出。</p>
             </div>
         </div>
 
