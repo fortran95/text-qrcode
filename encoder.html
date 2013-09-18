@@ -2,30 +2,42 @@
     <head>
         <title>文本-二维码半自动转换器</title>
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" href="css/jquery-ui.min.css" />
         <script type="text/javascript" src="js/jquery.min.js"></script>
+        <script type="text/javascript" src="js/jquery-ui.min.js"></script>
         <script type="text/javascript" src="js/jquery.qrcode.js"></script>
         <script type="text/javascript" src="js/qrcode.js"></script>
+        <script type="text/javascript" src="js/aes.js"></script>
         <script>
+/*enc = GibberishAES.enc("This sentence is super secret", "ultra-strong-password1");
+    alert(enc);
+alert(    GibberishAES.dec(enc, "ultra-strong-password1"));
+                $('#qrcodeTable').qrcode({		render	: "table",		text	: 'mytext',	});	
+        //	$('#qrcodeCanvas').qrcode({	text	: mytext,	});	*/
+        $(function(){
+            $('.tabs').tabs();
+        })
         </script>
     </head>
     <body>
         <div name="desc">
-            <p>文本到二维码转换器，可用于将文本数据进行AES加密并编码后拆分成若干包，在网页上绘制出多个二维码。
-            接受者在集齐所有的二维码后，可恢复出这一数据。二维码图片的顺序和重复不重要。但是必须每个拆出的包都出现至少一次。</p>
+            <p>文本到二维码转换器，可用于将文本数据进行加密、编码后拆分成若干包，在网页上绘制出多个二维码。
+            这些二维码只要出现在同一图片内，且未经大的压缩，就仍然可以被识别出来，然后重组得到数据。
+            在传输二维码时，二维码的顺序和重复不重要。您可以直接用截图工具截取屏幕上显示的全部二维码，然后发出即可。
+            </p>
             <p>本页面使用JavaScript绘制二维码，有图形和表格模式输出可选。前者适合于需要将多个复杂的二维码展示在同一页面上时，后者支持Ctrl+滚轮缩放，但是性能较差。</p>
-            <p>本页面不能识别二维码。因此，您需要将收集到的二维码图片用程序zbarimg识别。识别结果直接粘贴到这个页面，即可自动整理得到输出。</p>
+            <p>本页面不能识别二维码。因此，您需要将收集到的二维码图片用程序zbarimg识别。识别的批量结果直接粘贴到这个页面，即可自动整理得到输出。</p>
         </div>
-        <div id="text-code">
+        <div class="tabs">
+            <ul>
+                <li><a href="#text-code">文本到二维码图片转换</a></li>
+                <li><a href="#code-text">二维码图片识别结果解析</a></li>
+            </ul>
+            <div id="text-code">
+                
+            </div>
         </div>
 
-        <p>Render in table</p>
-        <div id="qrcodeTable"></div>
-        <p>Render in canvas</p> 
-        <div id="qrcodeCanvas"></div>
-        <script>
-                $('#qrcodeTable').qrcode({		render	: "table",		text	: mytext,	});	
-        //	$('#qrcodeCanvas').qrcode({	text	: mytext,	});	
-        </script>
 
     </body>
 </html>
