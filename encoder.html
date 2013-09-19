@@ -80,7 +80,7 @@
                     var result = regel.exec(chaos);
 
                     if(result){
-                        var main_index = result[3] + '.' + result[4];
+                        var main_index = result[3] + '_' + result[4];
                         if(code2text._found[main_index] == undefined){
                             code2text._found[main_index] = {
                                 'count': result[4],
@@ -118,12 +118,83 @@
 
             reset: function(){
                 code2text._found = {};
+                $('#code-text [name="result"]').empty();
             },
 
             handlers: {
 
                 codeReadFull: function(text_id){
-                    alert(code2text._found[text_id].full);
+                    var target = $('#code-text [name="result"]');
+                    var newdiv = $('<div>',{
+                            'id': 'result-' + text_id,
+                        })
+                        .append(
+                            $('<label>', {
+                                'for': 'decrypt-password',
+                            })
+                                .text('已经集齐一条信息，您可能需要输入解密密码：')
+                        )
+                        .append(
+                            $('<input>', {
+                                type: 'password',
+                                name: 'decrypt-password',
+                            })
+                        )
+                        .append(
+                            $('<button>', {
+                                'type': 'button',
+                                'name': 'decrypt-view',
+                            })
+                                .text('查看')
+                                .click(
+                                    {
+                                        'text_id': text_id,
+                                    },
+                                    code2text.handlers.onDecryptviewClicked
+                                )
+                        )
+                        .append(
+                            $('<textarea>', {
+                                'rows': 5,
+                            })
+                                .css({
+                                    'width': '100%',
+                                })
+                                .hide()
+                        )
+                        .append($('<hr>'))
+                    ;
+                    target.append(newdiv);
+                },
+
+                onDecryptviewClicked: function(e){
+                    var text_id = e.data.text_id;
+                    var target = $('#result-' + text_id);
+                    var password = target
+                        .find('input')
+                        .val()
+                    ;
+                    var ciphertext = code2text._found[text_id]['full'];
+                    
+                    try{
+                        var plaintext = GibberishAES.dec(
+                            ciphertext,
+                            password
+                        );
+                        target.find('label').text(
+                            '解密成功，下面显示结果：'
+                        );
+                        target.find('input,button').hide();
+                        target.find('textarea')
+                            .text(plaintext)
+                            .show()
+                        ;
+                    } catch (e) {
+                        target.find('label').text(
+                            '密码错误，请重新输入：'
+                        );
+                    }
+
                 },
 
                 onReadClicked: function(){
@@ -211,7 +282,8 @@
                         <button type="button" name="clear">清空识别结果收集框</button>
                         <button class="ui-state-error" type="button" name="reset">复位！删除已经输入的全部数据</button>
                     </div>
-
+                    <p>下面将显示识别结果。</p>
+                    <div name="result"></div>
                 </div>
             </div>
         </div>
