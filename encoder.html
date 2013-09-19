@@ -16,16 +16,16 @@
                 beforeAccordionActivated: function(e,ui){
                     if(ui.newPanel.attr('name') == 'result'){
                         text2code.update(
-                            ui.oldPanel.find('[name="encrypt-password"]').val(),
-                            ui.oldPanel.find('[name="input-data"]').val()
+                            ui.oldPanel.find('[name="input-data"]').val(),
+                            ui.oldPanel.find('[name="encrypt-password"]').val()
                         );
                     }
                 },
             },
 
             update: function(data, password){
-                var target = $('#text-code [name="result"]');
                 var ciphertext = GibberishAES.enc(data, password);
+                ciphertext = ciphertext.replace(/[^0-9a-zA-Z\+\/=]/g, '');
                 text2code.split(ciphertext, 10);
             },
 
@@ -53,7 +53,7 @@
             _found: {},
 
             feed: function(chaos){
-                chaos = chaos.replace('\n', '').replace('\r', '');
+                chaos = chaos.replace(/[^\(\)0-9a-zA-Z\+\/=]/g, '');
                 var regel = /\)(\d+)\)([0-9a-zA-Z\+\/=]+)\(([0-9a-f]+)p(\d+)\(/g; 
                 
                 while(true){
@@ -88,7 +88,11 @@
                     var joined = '';
                     for(var i in keys) joined += collector.pieces[i];
 
-                    alert(joined);
+                    if(crc32(joined).toString(16) == collector.crc32){
+                        code2text._found[text_id].full = joined;
+                        code2text.handlers.codeReadFull(text_id);
+                    } else
+                        alert('Schade!' + joined.length);
                 }
 
             },
@@ -100,6 +104,7 @@
             handlers: {
 
                 codeReadFull: function(text_id){
+                    alert(code2text._found[text_id].full);
                 },
 
             },
