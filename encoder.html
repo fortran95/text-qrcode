@@ -6,6 +6,7 @@
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="js/jquery-ui.min.js"></script>
         <script type="text/javascript" src="js/jquery.qrcode.js"></script>
+        <script type="text/javascript" src="js/lzstring-1.3.0.js"></script>
         <script type="text/javascript" src="js/qrcode.js"></script>
         <script type="text/javascript" src="js/aes.js"></script>
         <script type="text/javascript" src="js/crc32.js"></script>
@@ -24,9 +25,12 @@
             },
 
             update: function(data, password){
+//                data = LZString.compress(data)
+
+                /************************************************************/
                 var ciphertext = GibberishAES.enc(data, password);
                 ciphertext = ciphertext.replace(/[^0-9a-zA-Z\+\/=]/g, '');
-                text2code.split(ciphertext, 10);
+                text2code.split(ciphertext, 300);
             },
 
             split: function(ciphertext, length){
@@ -123,17 +127,44 @@
                     alert(code2text._found[text_id].full);
                 },
 
+                onReadClicked: function(){
+                    var target = $('#code-text [name="pastebin"]');
+                    code2text.feed(target.val());
+                    target.val('');
+                },
+
+                onClearClicked: function(){
+                    $('#code-text [name="pastebin"]').val('');
+                },
+
             },
 
         };
 
         $(function(){
             $('.tabs').tabs();
+            $('button').button();
             $('.accordion').accordion({
                 beforeActivate: text2code.handlers.beforeAccordionActivated,
             });
+
+            $('#code-text button[name="read"]').click(
+                code2text.handlers.onReadClicked
+            );
+
+            $('#code-text button[name="clear"]').click(
+                code2text.handlers.onClearClicked
+            );
+
+            $('#code-text button[name="reset"]').click(code2text.reset);
         })
         </script>
+        <style>
+            .qrcode{
+                padding: 10px;
+                display: inline-block;
+            }
+        </style>
     </head>
     <body>
         <div name="desc">
@@ -170,6 +201,18 @@
             </div>
             <div id="code-text">
                 <p>本页面不能识别二维码。因此，您需要将收集到的二维码图片用程序zbarimg识别。识别的批量结果直接粘贴到这个页面，即可自动整理得到输出。</p>
+                <p>如果您需要将多个图片的结果组合起来，可以将多个图片的识别结果一起粘贴进来。
+                您也可以在每个图片识别之后就粘贴。只要您没有按“复位”，程序会等待您的全部输入结果。</p>
+                <div>
+                    <div><label for="pastebin">将识别结果粘贴到下面的框中：</label></div>
+                    <textarea name="pastebin" style="width: 100%" rows="5"></textarea>
+                    <div>
+                        <button type="button" name="read">读取识别结果</button>
+                        <button type="button" name="clear">清空识别结果收集框</button>
+                        <button class="ui-state-error" type="button" name="reset">复位！删除已经输入的全部数据</button>
+                    </div>
+
+                </div>
             </div>
         </div>
 
