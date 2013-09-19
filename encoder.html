@@ -39,7 +39,7 @@
                 }
                 
                 for(var i=0; i<blocks.length; i++){
-                    blocks[i] = ")" + i + "v" + blocks.length + ")" + blocks[i] + "(" + text_id + "(";
+                    blocks[i] = ")" + i + ")" + blocks[i] + "(" + text_id + "p" + blocks.length + "(";
                 }
 
                 // test
@@ -54,12 +54,47 @@
 
             feed: function(chaos){
                 chaos = chaos.replace('\n', '').replace('\r', '');
-                var regel = /\)\d+v\d+\)[0-9a-zA-Z\+\/=]+\([0-9a-f]+\(/g; 
-                var result = chaos.match(regel);
-                alert(result.join('\n'));
+                var regel = /\)(\d+)\)([0-9a-zA-Z\+\/=]+)\(([0-9a-f]+)p(\d+)\(/g; 
+                
+                while(true){
+                    var result = regel.exec(chaos);
+
+                    if(result){
+                        var main_index = result[3] + '.' + result[4];
+                        if(code2text._found[main_index] == undefined){
+                            code2text._found[main_index] = {
+                                'count': result[4],
+                                'crc32': result[3],
+                                'full': false,
+                                'pieces': {},
+                            };
+                        }
+                        code2text._found[main_index]['pieces'][result[1]]
+                            = result[2];
+                    } else
+                        break;
+                }
+
+                for(var text_id in code2text._found){
+                    var collector = code2text._found[text_id];
+                    if(collector.full) continue;
+                    if(collector.pieces.length != collector.pieces.count)
+                        continue;
+
+                    var keys = [];
+                    for(var key in collector.pieces) keys.push(key);
+                    keys.sort();
+                
+                    var joined = '';
+                    for(var i in keys) joined += collector.pieces[i];
+
+                    alert(joined);
+                }
+
             },
 
             reset: function(){
+                code2text._found = {};
             },
 
             handlers: {
