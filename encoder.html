@@ -42,8 +42,24 @@
                     blocks[i] = ")" + i + ")" + blocks[i] + "(" + text_id + "p" + blocks.length + "(";
                 }
 
-                // test
-                code2text.feed(blocks.join(','));
+                //draw QR codes
+                var output_region = $('#text-code [name="result"]').empty();
+                for(var i in blocks)
+                    output_region.append(
+                        $('<div>')
+                            .addClass('qrcode')
+                            .data('qrdata', blocks[i])
+                    );
+
+                text2code.qrcodize();
+            },
+
+            qrcodize: function(){
+                $('.qrcode').each(function(){
+                    $(this).qrcode({
+                        'text': $(this).data('qrdata'),
+                    });
+                });
             },
 
         };
