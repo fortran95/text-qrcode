@@ -8,15 +8,74 @@
         <script type="text/javascript" src="js/jquery.qrcode.js"></script>
         <script type="text/javascript" src="js/qrcode.js"></script>
         <script type="text/javascript" src="js/aes.js"></script>
+        <script type="text/javascript" src="js/crc32.js"></script>
         <script>
-/*enc = GibberishAES.enc("This sentence is super secret", "ultra-strong-password1");
-    alert(enc);
-alert(    GibberishAES.dec(enc, "ultra-strong-password1"));
-                $('#qrcodeTable').qrcode({		render	: "table",		text	: 'mytext',	});	
-        //	$('#qrcodeCanvas').qrcode({	text	: mytext,	});	*/
+        var text2code = {
+            
+            handlers: {
+                beforeAccordionActivated: function(e,ui){
+                    if(ui.newPanel.attr('name') == 'result'){
+                        text2code.update(
+                            ui.oldPanel.find('[name="encrypt-password"]').val(),
+                            ui.oldPanel.find('[name="input-data"]').val()
+                        );
+                    }
+                },
+            },
+
+            update: function(data, password){
+                var target = $('#text-code [name="result"]');
+                var ciphertext = GibberishAES.enc(data, password);
+                text2code.split(ciphertext, 10);
+            },
+
+            split: function(ciphertext, length){
+                var blocks = [];
+                var text_id = crc32(ciphertext).toString(16);
+
+                while(ciphertext != ''){
+                    blocks.push(ciphertext.substring(0, length));
+                    ciphertext = ciphertext.substring(length);
+                }
+                
+                for(var i=0; i<blocks.length; i++){
+                    blocks[i] = ")" + i + "v" + blocks.length + ")" + blocks[i] + "(" + text_id + "(";
+                }
+
+                // test
+                code2text.feed(blocks.join(','));
+            },
+
+        };
+
+        var code2text = {
+
+            _found: {},
+
+            feed: function(chaos){
+                chaos = chaos.replace('\n', '').replace('\r', '');
+                var regel = /\)\d+v\d+\)[0-9a-zA-Z\+\/=]+\([0-9a-f]+\(/g; 
+                var result = chaos.match(regel);
+                alert(result.join('\n'));
+            },
+
+            reset: function(){
+            },
+
+            handlers: {
+
+                codeReadFull: function(text_id){
+                },
+
+            },
+
+        };
+
         $(function(){
             $('.tabs').tabs();
-            $('.accordion').accordion();
+            $('.accordion').accordion({
+                beforeActivate: text2code.handlers.beforeAccordionActivated,
+            });
         })
         </script>
     </head>
@@ -49,7 +108,7 @@ alert(    GibberishAES.dec(enc, "ultra-strong-password1"));
                     </div>
 
                     <h3>复制二维码图片结果</h3>
-                    <div>
+                    <div name="result">
                     </div>
                 </div>
             </div>
