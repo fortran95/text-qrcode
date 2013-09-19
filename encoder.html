@@ -14,23 +14,126 @@
         var text2code = {
             
             handlers: {
-                beforeAccordionActivated: function(e,ui){
-                    if(ui.newPanel.attr('name') == 'result'){
-                        text2code.update(
-                            ui.oldPanel.find('[name="input-data"]').val(),
-                            ui.oldPanel.find('[name="encrypt-password"]').val()
-                        );
-                    }
+
+                onShowResultClicked: function(){
+                    var target = $('#text-code');
+                    text2code.update(
+                        target.find('[name="input-data"]').val(),
+                        target.find('[name="encrypt-password"]').val(),
+                        target.find('[name="qrcodes-pro-dialog"]').val()
+                    );
                 },
             },
 
-            update: function(data, password){
+            displayer: {
+                
+                _groups: [],
+                _pointer: 0,
+
+                display: function(blocks, count_p_page){
+                    text2code.displayer._groups = [];
+                    while(blocks.length > 0){
+                        var sub_group = [];
+                        for(i=0; i<count_p_page; i++)
+                            if(blocks.length > 0)
+                                sub_group.push(blocks.pop());
+                        text2code.displayer._groups.push(sub_group);
+                    }
+                    
+
+                    $('<div>', {
+                        'id': 'dialog-displayer',
+                    })
+                        .append(
+                            $('<div>', {
+                                'id': 'qrcode-results',
+                            })
+                        )
+                        .appendTo('body')
+                        .dialog({
+                            'buttons': [
+                                {
+                                    text: '上一页',
+                                    click: text2code.displayer.previous,
+                                },
+                                {
+                                    text: '下一页',
+                                    click: text2code.displayer.next,
+                                },
+                            ],
+                            'close': text2code.displayer.close,
+                            'closeOnEscape': true,
+                            'autoOpen': true,
+                            'modal': true,
+                            'width': '90%',
+                        })
+                    ;
+                    text2code.displayer._pointer = 0;
+                    text2code.displayer.show();
+
+                },
+
+                next: function(){
+                    text2code.displayer._pointer += 1;
+                    text2code.displayer.show();
+                },
+
+                previous: function(){
+                    text2code.displayer._pointer -= 1;
+                    text2code.displayer.show();
+                },
+
+                close: function(){
+                    $('#dialog-displayer').remove();
+                },
+
+                show: function(){
+                    var maxlength = text2code.displayer._groups.length;
+                    if(text2code.displayer._pointer < 0)
+                        text2code.displayer._pointer = 0;
+                    if(text2code.displayer._pointer >= maxlength)
+                        text2code.displayer._pointer = maxlength - 1;
+
+                    var target = $('#qrcode-results');
+                    target.empty();
+
+                    display_group = text2code.displayer._groups[
+                        text2code.displayer._pointer
+                    ];
+
+                    for(var i in display_group){
+                        target.append(
+                            $('<div>')
+                                .addClass('qrcode')
+                                .qrcode({
+                                    'text': display_group[i],
+                                })
+                        );
+                    }
+
+                    $('#dialog-displayer').dialog('option', {
+                        'title': '二维码结果显示(' +
+                            (text2code.displayer._pointer + 1) +
+                            '/' + maxlength + ')',
+                        'position': {
+                            'at': 'center',
+                            'my': 'center',
+                            'of': window,
+                        },
+                    });
+                },
+
+            },
+
+            update: function(data, password, count_p_page){
 //                data = LZString.compress(data)
 
                 /************************************************************/
                 var ciphertext = GibberishAES.enc(data, password);
                 ciphertext = ciphertext.replace(/[^0-9a-zA-Z\+\/=]/g, '');
-                text2code.split(ciphertext, 256);
+                var blocks = text2code.split(ciphertext, 256);
+
+                text2code.displayer.display(blocks, count_p_page);
             },
 
             split: function(ciphertext, length){
@@ -46,24 +149,7 @@
                     blocks[i] = ")" + i + ")" + blocks[i] + "(" + text_id + "p" + blocks.length + "(";
                 }
 
-                //draw QR codes
-                var output_region = $('#text-code [name="result"]').empty();
-                for(var i in blocks)
-                    output_region.append(
-                        $('<div>')
-                            .addClass('qrcode')
-                            .data('qrdata', blocks[i])
-                    );
-
-                text2code.qrcodize();
-            },
-
-            qrcodize: function(){
-                $('.qrcode').each(function(){
-                    $(this).qrcode({
-                        'text': $(this).data('qrdata'),
-                    });
-                });
+                return blocks;
             },
 
         };
@@ -258,8 +344,10 @@
         $(function(){
             $('.tabs').tabs();
             $('button').button();
+            $('.spinner').spinner();
+
             $('.accordion').accordion({
-                beforeActivate: text2code.handlers.beforeAccordionActivated,
+                heightStyle: 'content',
             });
 
             $('#code-text button[name="read"]').click(
@@ -271,6 +359,17 @@
             );
 
             $('#code-text button[name="reset"]').click(code2text.reset);
+
+            $('#text-code button[name="show-result"]').click(
+                text2code.handlers.onShowResultClicked
+            );
+
+            $('.spinner[name="qrcodes-pro-dialog"]')
+                .spinner('option',{
+                    'max': 8,
+                    'min': 2,
+                })
+            ;
         })
         </script>
         <style>
@@ -292,9 +391,9 @@
                 <li><a href="#text-code">文本到二维码图片转换</a></li>
                 <li><a href="#code-text">二维码图片识别结果解析</a></li>
             </ul>
+
+            <!-- QRCode Generation Tab -->
             <div id="text-code">
-                <p>本页面使用JavaScript绘制二维码，有图形和表格模式输出可选。
-                前者适合于需要将多个复杂的二维码展示在同一页面上时，后者支持Ctrl+滚轮缩放，但是性能较差。</p>
                 <div class="accordion">
                     <h3>输入要处理的文本数据</h3>
                     <div>
@@ -309,10 +408,19 @@
                     </div>
 
                     <h3>复制二维码图片结果</h3>
-                    <div name="result">
+                    <div>
+                        <p>
+                        建议您按 F11 进入全屏模式截图。
+                        二维码将以一个或几个对话框的形式显示在屏幕上。使用截图软件或者PrtScr按键直接保存屏幕图形即可。
+                        </p>
+                        <label for="qrcodes-pro-dialog">调节每一次显示的二维码的个数：</label>
+                        <input class="spinner" type="text" name="qrcodes-pro-dialog" value="4" />
+                        <button name="show-result" type="button">开始显示</button>
                     </div>
                 </div>
             </div>
+
+            <!-- QRCode Recognization Tab -->
             <div id="code-text">
                 <p>本页面不能识别二维码。因此，您需要将收集到的二维码图片用程序zbarimg识别。识别的批量结果直接粘贴到这个页面，即可自动整理得到输出。</p>
                 <p>如果您需要将多个图片的结果组合起来，可以将多个图片的识别结果一起粘贴进来。
@@ -329,6 +437,8 @@
                     <div name="result"></div>
                 </div>
             </div>
+
+
         </div>
 
 
