@@ -74,8 +74,9 @@
 
             feed: function(chaos){
                 chaos = chaos.replace(/[^\(\)0-9a-zA-Z\+\/=]/g, '');
-                var regel = /\)(\d+)\)([0-9a-zA-Z\+\/=]+)\(([0-9a-f]+)p(\d+)\(/g; 
-                
+                var regel = /\)(\d+)\)([0-9a-zA-Z\+\/=]+)\(([0-9a-f]+)p(\d+)\(/g;
+
+                var modified = false;
                 while(true){
                     var result = regel.exec(chaos);
 
@@ -88,12 +89,15 @@
                                 'full': false,
                                 'pieces': {},
                             };
+                            code2text.handlers.newCodeReadTask(main_index);
                         }
                         code2text._found[main_index]['pieces'][result[1]]
                             = result[2];
+                        modified = true;
                     } else
                         break;
                 }
+                if(!modified) return;
 
                 for(var text_id in code2text._found){
                     var collector = code2text._found[text_id];
@@ -101,6 +105,7 @@
 
                     var keys = [];
                     for(var key in collector.pieces) keys.push(key);
+                    code2text.handlers.codeReadProgress(text_id, keys.length);
                     if(keys.length != collector.count) continue;
                     keys.sort();
                 
@@ -123,11 +128,26 @@
 
             handlers: {
 
-                codeReadFull: function(text_id){
+                newCodeReadTask: function(text_id){
                     var target = $('#code-text [name="result"]');
                     var newdiv = $('<div>',{
                             'id': 'result-' + text_id,
-                        })
+                        });
+
+                    var reading_part = $('<div>', {
+                        'name': 'reading',
+                    })
+                        .append(
+                            $('<div>', {
+                                'name': 'progressbar',
+                            })
+                                .progressbar()
+                        )
+                    ;
+
+                    var done_part = $('<div>', {
+                        'name': 'done',
+                    })
                         .append(
                             $('<label>', {
                                 'for': 'decrypt-password',
@@ -164,7 +184,30 @@
                         )
                         .append($('<hr>'))
                     ;
-                    target.append(newdiv);
+
+                    target.append(
+                        newdiv
+                            .append(reading_part)
+                            .append(done_part.hide())
+                    );
+                },
+
+                codeReadProgress: function(text_id, counted){
+                    var target = $('#result-' + text_id)
+                        .find('[name="progressbar"]')
+                        .progressbar(
+                            'option',
+                            'value',
+                            100.0 * counted / code2text._found[text_id].count
+                        )
+                    ;
+
+                },
+
+                codeReadFull: function(text_id){
+                    var target = $('#result-' + text_id)
+                    target.find('[name="reading"]').hide();
+                    target.find('[name="done"]').show();
                 },
 
                 onDecryptviewClicked: function(e){
