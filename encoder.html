@@ -98,11 +98,10 @@
                 for(var text_id in code2text._found){
                     var collector = code2text._found[text_id];
                     if(collector.full) continue;
-                    if(collector.pieces.length != collector.pieces.count)
-                        continue;
 
                     var keys = [];
                     for(var key in collector.pieces) keys.push(key);
+                    if(keys.length != collector.count) continue;
                     keys.sort();
                 
                     var joined = '';
@@ -129,8 +128,9 @@
 
                 onReadClicked: function(){
                     var target = $('#code-text [name="pastebin"]');
-                    code2text.feed(target.val());
+                    var feeded = target.val();
                     target.val('');
+                    code2text.feed(feeded);
                 },
 
                 onClearClicked: function(){
