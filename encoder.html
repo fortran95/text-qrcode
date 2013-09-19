@@ -30,7 +30,7 @@
                 /************************************************************/
                 var ciphertext = GibberishAES.enc(data, password);
                 ciphertext = ciphertext.replace(/[^0-9a-zA-Z\+\/=]/g, '');
-                text2code.split(ciphertext, 300);
+                text2code.split(ciphertext, 256);
             },
 
             split: function(ciphertext, length){
